@@ -7,6 +7,8 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 import sys
 
+from ckbpipe import CKBPipe
+
 # media keys:
 KEYS =               ['stop',      'prev',     'play',    'next']
 # statuses:
@@ -17,27 +19,23 @@ BY_STATUS = {
     'Player_Gone':  ['00000000', '00000000', '00000000', '00000000'],
 }
 
-def properties_changed(iface, args, _):
-    global last_sender
+class Handler:
+    def __init__(self, ckb, media_player):
+        self.media_player = "org.mpris.MediaPlayer2." + media_player
+        self.ckb = ckb
 
-    if 'PlaybackStatus' in args:
-        print(args['PlaybackStatus'])
-        colors = BY_STATUS[args['PlaybackStatus']]
+    def properties_changed(self, iface, changed, invalidated):
+        if 'PlaybackStatus' in changed:
+            print(f"<7>New playback status: {changed['PlaybackStatus']}", file=sys.stderr)
+            colors = BY_STATUS[changed['PlaybackStatus']]
 
-        keyboard_set({key: color for (key, color) in zip(KEYS, colors)})
+            self.ckb.set({key: color for (key, color) in zip(KEYS, colors)})
 
-def name_owner_changed(name, old, new):
-    media_player = "org.mpris.MediaPlayer2." + args.media_player
-
-    if name == media_player and new == "":
-        print('media player disappeared')
-        colors = BY_STATUS['Player_Gone']
-        keyboard_set({key: color for (key, color) in zip(KEYS, colors)})
-
-def keyboard_set(colors_in):
-    with open(args.ckb_pipe, 'w') as f:
-        for (key, value) in colors_in.items():
-            f.write('rgb ' + key + ':' + value + '\n')
+    def name_owner_changed(self, name, old, new):
+        if name == self.media_player and new == "":
+            print("<7>Media player disappeared", file=sys.stderr)
+            colors = BY_STATUS['Player_Gone']
+            self.ckb.set({key: color for (key, color) in zip(KEYS, colors)})
 
 def parse_args():
     '''Parse command line arguments.'''
@@ -49,18 +47,18 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    global args 
-
     args = parse_args()
+    ckb = CKBPipe(args.ckb_pipe)
+    handler = Handler(ckb, args.media_player)
 
     DBusGMainLoop(set_as_default=True)
     bus = dbus.SessionBus()
-    bus.add_signal_receiver(properties_changed,
+    bus.add_signal_receiver(handler.properties_changed,
         dbus_interface='org.freedesktop.DBus.Properties',
         signal_name='PropertiesChanged',
         arg0 = "org.mpris.MediaPlayer2.Player",
     )
-    bus.add_signal_receiver(name_owner_changed,
+    bus.add_signal_receiver(handler.name_owner_changed,
         dbus_interface='org.freedesktop.DBus',
         signal_name='NameOwnerChanged',
         bus_name='org.freedesktop.DBus',
