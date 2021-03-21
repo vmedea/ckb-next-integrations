@@ -43,8 +43,8 @@ def parse_args():
     '''Parse command line arguments.'''
     parser = argparse.ArgumentParser(description='Music player status display with ckb-next')
 
-    parser.add_argument('--ckb-pipe', '-c', help='The ckb-pipe-hook (/tmp/ckbpipe...)')
-    parser.add_argument('--media-player', '-p', help='The media player to be monitored')
+    parser.add_argument('--ckb-pipe', '-c', required=True, help='The ckb-pipe-socket (/tmp/ckbpipeNNN')
+    parser.add_argument('--media-player', '-p', required=True, help='The media player to be monitored')
 
     return parser.parse_args()
 
