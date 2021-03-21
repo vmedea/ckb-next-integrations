@@ -24,18 +24,19 @@ class Handler:
         self.media_player = "org.mpris.MediaPlayer2." + media_player
         self.ckb = ckb
 
+    def _set_status(self, status):
+        colors = BY_STATUS[status]
+        self.ckb.set({key: color for (key, color) in zip(KEYS, colors)})
+
     def properties_changed(self, iface, changed, invalidated):
         if 'PlaybackStatus' in changed:
             print(f"<7>New playback status: {changed['PlaybackStatus']}", file=sys.stderr)
-            colors = BY_STATUS[changed['PlaybackStatus']]
-
-            self.ckb.set({key: color for (key, color) in zip(KEYS, colors)})
+            self._set_status(changed['PlaybackStatus'])
 
     def name_owner_changed(self, name, old, new):
         if name == self.media_player and new == "":
             print("<7>Media player disappeared", file=sys.stderr)
-            colors = BY_STATUS['Player_Gone']
-            self.ckb.set({key: color for (key, color) in zip(KEYS, colors)})
+            self._set_status('Player_Gone')
 
 def parse_args():
     '''Parse command line arguments.'''
