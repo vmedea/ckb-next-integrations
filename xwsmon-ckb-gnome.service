@@ -6,7 +6,7 @@ Requires=gnome-session-x11-services-ready.target
 After=gnome-session-x11-services-ready.target
 
 [Service]
-ExecStart=%h/projects/leds/ckb/xwsmon-ckb
+ExecStart=%h/projects/leds/ckb/xwsmon-ckb.py -c /tmp/ckbpipe000
 
 [Install]
 WantedBy=gnome-session-x11-services-ready.target
