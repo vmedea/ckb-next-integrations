@@ -1,0 +1,12 @@
+# xwsmon user systemd service file (works for GNOME Wayland w/ Xwayland too)
+# $HOME/.config/systemd/user/xwsmon.service
+[Unit]
+Description=Workspace switch monitor for ckb-next
+Requires=gnome-session-x11-services-ready.target
+After=gnome-session-x11-services-ready.target
+
+[Service]
+ExecStart=%h/projects/leds/ckb/xwsmon-ckb
+
+[Install]
+WantedBy=gnome-session-x11-services-ready.target
