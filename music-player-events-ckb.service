@@ -1,0 +1,13 @@
+# music-player-events-ckb user systemd service file (should work for any desktop)
+# $HOME/.config/systemd/user/music-player-events-ckb.service
+[Unit]
+Description=Media player monitor for ckb-next
+Requires=dbus.service
+After=dbus.service
+
+[Service]
+# -p specifies the DBUS name minus `org.mpris.MediaPlayer2.`, this is `spotify` for Spotify and `cmus` for CMus.
+ExecStart=%h/projects/leds/ckb/music-player-events-ckb.py -c /tmp/ckbpipe002 -p cmus
+
+[Install]
+WantedBy=graphical-session.target
