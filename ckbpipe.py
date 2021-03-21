@@ -1,3 +1,4 @@
+# Mara Huldra 2021 :: SPDX-License-Identifier: MIT
 class CKBPipe:
     '''Interface to ckb-next 'pipe' animation.'''
     def __init__(self, filename):
