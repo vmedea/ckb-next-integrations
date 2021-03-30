@@ -16,6 +16,19 @@ endif
 py3 << EOF
 
 # TODO: wrap all the functions in a class instead of adding all these python globals (which will be global to the entire editor)
+
+class Color:
+    # input classes
+    HIGHLIGHT = 'ffffffff'
+    INSERT = '00ff00ff'
+    VISUAL = 'ffff00ff'
+    MOVEMENT = 'ff8000ff'
+    REPLACE = 'ff0000ff'
+    META = 'ff8080ff'
+    COMMAND = 'ff00ffff'
+
+    TOGGLE = ['000000c0', 'ffffffff']
+
 # TODO: function keys are not part of 'all', this is kind of a hack
 #   this is because they are set separately: not based on editor mode but on basis of settings (or other) toggles
 class Keys:
@@ -64,29 +77,29 @@ def set_keyboard_colors(scheme):
 
     colors = {x: '00000000' for x in Keys.ALL}
     if scheme.startswith('i'):
-        set_multi(colors, ['i'], 'ffffffff')
+        set_multi(colors, ['i'], Color.HIGHLIGHT)
     elif scheme.startswith('R'):
-        set_multi(colors, ['r'], 'ffffffff')
+        set_multi(colors, ['r'], Color.HIGHLIGHT)
     elif scheme in {'v','V','\x16'}:
-        set_multi(colors, Keys.VISUAL_SELECTION, 'ffff00ff')
-        set_multi(colors, Keys.MOVEMENT, 'ff8000ff')
-        set_multi(colors, ['v'], 'ffffffff')
+        set_multi(colors, Keys.VISUAL_SELECTION, Color.VISUAL)
+        set_multi(colors, Keys.MOVEMENT, Color.MOVEMENT)
+        set_multi(colors, ['v'], Color.HIGHLIGHT)
     elif scheme.startswith('c'):
-        set_multi(colors, ['colon'], 'ffffffff')
+        set_multi(colors, ['colon'], Color.HIGHLIGHT)
     elif scheme.startswith('n'):
-        set_multi(colors, Keys.TO_INSERT, '00ff00ff') # green=insert
-        set_multi(colors, Keys.TO_VISUAL, 'ffff00ff') # yellow=visual selection
-        set_multi(colors, Keys.TO_REPLACE, 'ff0000ff') # red=replace
-        set_multi(colors, Keys.UNDO_REDO + Keys.DELETION + Keys.REGISTER, 'ff8080ff')
-        set_multi(colors, Keys.SEARCH, 'ff8080ff')
-        set_multi(colors, Keys.MODKEYS, 'ffff00ff')
-        set_multi(colors, Keys.TO_CMD, 'ff00ffff')
-        set_multi(colors, Keys.MOVEMENT, 'ff8000ff')
+        set_multi(colors, Keys.TO_INSERT, Color.INSERT)
+        set_multi(colors, Keys.TO_VISUAL, Color.VISUAL)
+        set_multi(colors, Keys.TO_REPLACE, Color.REPLACE)
+        set_multi(colors, Keys.UNDO_REDO + Keys.DELETION + Keys.REGISTER, Color.META)
+        set_multi(colors, Keys.SEARCH, Color.META)
+        set_multi(colors, Keys.MODKEYS, Color.VISUAL)
+        set_multi(colors, Keys.TO_CMD, Color.COMMAND)
+        set_multi(colors, Keys.MOVEMENT, Color.MOVEMENT)
     elif scheme == 'registers':
         for k in Keys.ALL:
             if len(k) == 1:
                 if get_register(k):
-                    colors[k] = 'ffffffff'
+                    colors[k] = Color.HIGHLIGHT
     elif scheme == 'reset': # reset to default on exit
         set_multi(colors, Keys.FUNC, '00000000')
 
@@ -101,7 +114,7 @@ def set_toggle_color(ckbkey, setting):
     #     vim.current.window.options[setting]   (window options)
     #     vim.options                           (global options)
     # this needs more work to distinguish at which level options exist, though
-    color = ['000000c0', 'ffffffff'][int(vim.eval('&' + setting))]
+    color = Color.TOGGLE[int(vim.eval('&' + setting))]
     keyboard_set({ckbkey: color})
 
 def update_all_toggles():
@@ -133,7 +146,7 @@ augroup KeyboardColorSwap
     autocmd BufEnter * py3 update_all_toggles()
 augroup END
 
-function OpenRGBStatuslineFunc()
+function! OpenRGBStatuslineFunc()
   py3 set_keyboard_colors(vim.eval('mode()'))
   return ''
 endfunction
@@ -151,6 +164,12 @@ setup_toggle('<F9>', 'f9', 'hidden')
 setup_toggle('<F10>', 'f10', 'scrollbind')
 setup_toggle('<F11>', 'f11', 'ignorecase')
 setup_toggle('<F12>', 'f12', 'paste')
+# TODO: some way to do the non-trivial toggles too:
+# need a way to pass custom "probe" and "set" functions
+# nnoremap <F5> :call VEToggle()<CR>
+# nnoremap <F6> :TagbarToggle<CR>
+# nnoremap <F7> :call TabMode()<CR>
+# nnoremap <F8> :NERDTreeToggle %:h<CR>
 
 EOF
 
